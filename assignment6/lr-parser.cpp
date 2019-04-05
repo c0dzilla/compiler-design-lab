@@ -7,6 +7,8 @@
 #include <stack>
 #include <string>
 
+#define INT_MAX 1000000000
+
 using namespace std;
 
 void fillRules(pair<char, string> rules[6]) {
@@ -176,7 +178,7 @@ void generateInput(stack_symbol sym[6]) {
     sym[5] = a;
 }
 
-int generateAttr(stack<stack_symbol> s, int rule) {
+int generateAttr(stack<stack_symbol>& s, int rule) {
     stack_symbol a, b;
     switch(rule) {
         case 0:
@@ -184,16 +186,52 @@ int generateAttr(stack<stack_symbol> s, int rule) {
             s.pop();
             s.pop();
             b = s.top();
+            s.pop();
+            cout<<"Performing ";
+            cout<<a.val;
+            cout<<"+";
+            cout<<b.val<<endl;
             return a.val + b.val;
+        case 1:
+            a = s.top();
+            s.pop();
+            return a.val;
         case 2:
             a = s.top();
             s.pop();
             s.pop();
             b = s.top();
+            s.pop();
+            cout<<"Performing ";
+            cout<<a.val;
+            cout<<"*";
+            cout<<b.val<<endl;
             return a.val * b.val;
+        case 3:
+            a = s.top();
+            s.pop();
+            return a.val;
+        case 4:
+            s.pop();
+            a = s.top();
+            s.pop();
+            s.pop();
+            return a.val;
+        case 5:
+            a = s.top();
+            s.pop();
+            return a.val;
         default:
-            return 1000000000;
+            // shouldn't reach here
+            return -1;
     }
+}
+
+void printPushedVal(char sym, int val) {
+    cout<<"Value of ";
+    cout<<sym;
+    cout<<" pushed on stack = ";
+    cout<<val<<endl;
 }
 
 int main() {
@@ -230,6 +268,9 @@ int main() {
         } else if (step.first == 's') {
             cout<<"shift"<<endl;
             s.push(inp[i]);
+            if (inp[i].symbol == 'i') {
+                printPushedVal(inp[i].symbol, inp[i].val);
+            }
             a.symbol = to_string(step.second)[0];
             a.val = -1;
             s.push(a);
@@ -239,14 +280,12 @@ int main() {
         } else if (step.first == 'r') {
             printf("reduce by %c -> ", rules[step.second - 1].first);
             cout<< rules[step.second - 1].second << endl;
-            int toPush = generateAttr(s, step.second - 1);
             int removals = rules[step.second - 1].second.length();
-            if (toPush == 1000000000) {
-                removals *= 2;
-            }
             while (removals--) {
                 s.pop();
             }
+            int toPush = generateAttr(s, step.second - 1);
+            a.symbol = rules[step.second - 1].first;
             string gotoState = to_string(go[s.top().symbol - '0'][rules[step.second - 1].first]);
             char gotostate;
             // hack
@@ -260,6 +299,7 @@ int main() {
             a.symbol = rules[step.second - 1].first;
             a.val = toPush;
             s.push(a);
+            printPushedVal(a.symbol, a.val);
             a.symbol = gotostate;
             a.val = -1;
             s.push(a);
